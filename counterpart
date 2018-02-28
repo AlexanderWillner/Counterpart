@@ -7,10 +7,10 @@
 #	A wrapper script for rsync 3.0+ that is capable of producing a bootable clone of a live Mac OS X system.
 #	Features extensive error reporting, automatic logging and stats generation.
 
-#   v1.3 - 28 February 2018
-#   Enhanced test for correct rsync version (and added script to install the correct one)
-#   Ensure that ownership is not ignored (otherwise the backup would not be bootable)
-#   More verbose output and general cleanup
+#	v1.3 - 28 February 2018
+#	Enhanced test for correct rsync version (and added script to install the correct one)
+#	Ensure that ownership is not ignored (otherwise the backup would not be bootable)
+#	More verbose output and general cleanup
 #
 #	v1.2.1 - 16 April 2014
 #	Added the optional flag -g which allows supply of an organisation prefix in reverse domain notation at runtime, rather than editing the script itself.
@@ -229,7 +229,7 @@ printf "Counterpart is a wrapper script for rsync 3.0+ that is capable of produc
 printf "Usage:\n$0 -s [source] -d [destination] <options>\n\n"
 printf "Options:\n"
 printf " -e\t\tpath to exclusion patterns file. this is checked and then passed to rsync as the --exclude-from option.\n"
-printf " -b:\t\tpassword for server backup. when this option is supplied with a password, Open Directory is archived (using the supplied password) and all PostgreSQL databases and serveradmin settings are dumped to disk before the clone occurs. this option is only supported on 10.7+ with OS X Server installed.\n"
+printf " -b\t\tpassword for server backup. when this option is supplied with a password, Open Directory is archived (using the supplied password) and all PostgreSQL databases and serveradmin settings are dumped to disk before the clone occurs. this option is only supported on 10.7+ with OS X Server installed.\n"
 printf " -B\t\t\ same as -b, but will use a password stored in the system keychain.  You must run $0 setpass once prior to \n"
 printf " -p\t\tpath to pre-clone script. this script will be executed before the clone occurs, and it's output will be logged.\n"
 printf " -o\t\tpath to post-clone script. this script will be executed after a successful clone occurs, and it's output will be logged.\n"
