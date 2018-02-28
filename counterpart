@@ -202,7 +202,7 @@ done
 
 # do we need to print help?
 if [ "$printHelp" == "true" ] || [ "$1" == "" ] ; then
-printf "Counterpart version $version (`md5 $0 | awk '{ print substr($4,0,6) }'`).\nWritten by Jedda Wignall (http://jedda.me/counterpart/)\n\n"
+printf "Counterpart version $version (`md5 $0 | awk '{ print substr($4,0,6) }'`).\nWritten by Jedda Wignall (http://jedda.me/counterpart/)\nUpdated by Alexander Willner\n\n"
 printf "Counterpart is a wrapper script for rsync 3.0+ that is capable of producing a bootable clone of a live Mac OS X system.\n\n"
 printf "Usage:\n$0 -s [source] -d [destination] <options>\n\n"
 printf "Options:\n"
