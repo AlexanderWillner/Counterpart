@@ -48,6 +48,7 @@
 # - Evaluate to speedup the first backup using "tar -cz $src | pv | tar -xf $dst"
 # - Evaluate the use of ditto
 # - Evaluate the need for the EFI and Recovery partitions
+# - Evaluate "--sparse" vs "--inplace"
 # - Add example how to start this script as soon as a new USB drive is attached
 # - Add trap to disable/enable timemachine
 # - Move/update exclusions
@@ -61,7 +62,7 @@ pathToRsync="$(which rsync)"
 pathToRsync="$(ls /opt/local/bin/rsync /usr/local/bin/rsync $pathToRsync 2>/dev/null | head -n 1)"
 serverBackupPath="/var/backups/counterpart" # this is the path that server data will be backed up to if the -b option is specified
 version="1.3"
-params="-D --inplace --crtimes --acls --archive --delete --delete-excluded $excludeString --hard-links --hfs-compression --one-file-system --protect-decmpfs --sparse --verbose"
+params="-D --inplace --crtimes --acls --archive --delete --delete-excluded $excludeString --hard-links --hfs-compression --one-file-system --protect-decmpfs --verbose"
 # --hfs-compression implies --xattrs --fileflags
 
 # default macports and homebrew install paths
