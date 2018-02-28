@@ -51,6 +51,7 @@
 # - Add trap to disable/enable timemachine
 # - Move/update exclusions
 # - Evaluate this influence of APFS (e.g. bootable copy is APFs)
+# - Add option to eject disk after backup (see https://github.com/jedda/Counterpart/issues/14)
 
 # variables
 exclusions=(".Trash" ".Trashes" ".Spotlight-*/" ".DocumentRevisions-*/" "/.fseventsd" "/.hotfiles.btree" "/private/var/db/dyld/dyld_*" "/System/Library/Caches/com.apple.bootstamps/*" "/System/Library/Caches/com.apple.corestorage/*" "/System/Library/Caches/com.apple.kext.caches/*" "/Library/Caches/*" "/Volumes/*" "/dev/*" "/automount" "/Network" "/.vol/*" "/net" "/private/var/folders/*" "/private/var/vm/*" "/private/tmp/*" "/cores")
