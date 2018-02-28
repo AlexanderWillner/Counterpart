@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-# source: http://librelist.com/browser//homebrew/2011/7/7/rsync/
+# Script to install rsync with all needed patches. Unfortunately, the rsync version
+# installed via ```brew install rsync``` does not include all needed patches,
+# as hfs-compression.diff is marked by upstream as broken as of 3.1.3.
+#
+# original source: http://librelist.com/browser//homebrew/2011/7/7/rsync/
 
 # Robust shell code ###########################################################
 set -o errexit
@@ -11,7 +15,7 @@ set -o pipefail
 
 # Variables ###################################################################
 readonly rsyncPrefix="rsync-"
-readonly rsyncVersion="3.0.9"
+readonly rsyncVersion="3.1.2"
 readonly rsyncSuffix=".tar.gz"
 readonly rsyncURL="http://rsync.samba.org/ftp/rsync/src/"
 ###############################################################################
