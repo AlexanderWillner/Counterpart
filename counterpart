@@ -42,6 +42,16 @@
 #	You should have received a copy of the GNU General Public License
 #	along with this program.  If not, see <http://www.gnu.org/licenses/>
 
+# TODOs
+# - Apply bash best practices
+# - Evaluate to speedup the first backup using "tar -cz $src | pv | tar -xf $dst"
+# - Evaluate the use of ditto
+# - Evaluate the need for the EFI and Recovery partitions
+# - Add example how to start this script as soon as a new USB drive is attached
+# - Add trap to disable/enable timemachine
+# - Move/update exclusions
+# - Evaluate this influence of APFS (e.g. bootable copy is APFs)
+
 # variables
 exclusions=(".Trash" ".Trashes" ".Spotlight-*/" ".DocumentRevisions-*/" "/.fseventsd" "/.hotfiles.btree" "/private/var/db/dyld/dyld_*" "/System/Library/Caches/com.apple.bootstamps/*" "/System/Library/Caches/com.apple.corestorage/*" "/System/Library/Caches/com.apple.kext.caches/*" "/Library/Caches/*" "/Volumes/*" "/dev/*" "/automount" "/Network" "/.vol/*" "/net" "/private/var/folders/*" "/private/var/vm/*" "/private/tmp/*" "/cores")
 loggingDirectory="/Library/Logs/Counterpart/"
