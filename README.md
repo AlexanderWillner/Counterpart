@@ -17,18 +17,25 @@ counterpart -s [source] -d [destination] <options>
 *	 -h		:	display help.
 
 ## Example
-counterpart -s "/" -d "/Volumes/Bootable Clone" -e "/etc/counterpart\_exclude" -b thepassword
+```
+counterpart -s "/" -d "/Volumes/BootableClone"
+```
 
 This example will clone a bootable copy of the live Mac OS X system to a disk at /Volumes/Bootable Clone, whilst excluding any file patterns defined in /etc/counterpart_exclude and
 backing up OS X Server data to disk with the password "thepassword".
 
-## Installation:
-Full installation instructions are available here: [INSTALL.md](https://github.com/jedda/Counterpart/blob/master/INSTALL.md)
+## Installation
+Counterpart requires rsync 3.0.9 or later with acl and hfs-compression patches applied. The simplest way to install this on an Intel Mac running 10.6+ is to use Homebrew. Please install [homebrew](http://brew.sh/) first. However, as of this being written, a required patch for rsync version 3.1.3 is broken. Therefore, we've to install version 3.1.2 manually (and this step can be skipped in the future eventually):
 
-## Requirements:
-Counterpart requires rsync 3.0.9 or later with acl and hfs-compression patches applied. The simplest way to install this on an Intel Mac running 10.6+ is to use Homebrew.
+```
+bash <(curl -skL https://raw.githubusercontent.com/AlexanderWillner/Counterpart/master/counterpart-install-rsync.sh)
+```
 
-Instructions on installing Homebrew and the appropriate version of rsync are available here: [INSTALL.md](https://github.com/jedda/Counterpart/blob/master/INSTALL.md)
+Typical next steps to install counterpart:
+
+ - Prepare: ```brew tap AlexanderWillner/tap```
+ - Install: ```brew install counterpart```
+ - Upgrade: ```brew upgrade```
 
 ## Process
 
