@@ -37,6 +37,15 @@ Typical next steps to install counterpart:
  - Install: ```brew install counterpart```
  - Upgrade: ```brew upgrade```
 
+ Alternatively, you can just download counterpart:
+ 
+ ```
+ curl -OksL https://raw.githubusercontent.com/AlexanderWillner/Counterpart/master/counterpart
+ chmod +x counterpart
+ ./counterpart
+ ```
+
+
 ## Process
 
 In a standard clone operation, Counterpart does the following:
