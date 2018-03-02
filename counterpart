@@ -7,6 +7,9 @@
 #	A wrapper script for rsync 3.0+ that is capable of producing a bootable clone of a live Mac OS X system.
 #	Features extensive error reporting, automatic logging and stats generation.
 
+#	v1.3.1 - xx March 2018
+#	Separate logfile for errors and warnings
+#
 #	v1.3 - 28 February 2018
 #	Enhanced test for correct rsync version (and added script to install the correct one)
 #	Ensure that ownership is not ignored (otherwise the backup would not be bootable)
@@ -253,21 +256,21 @@ printf "Support & Updates:\nFor support, bug reports, answers and updates, see h
 exit 0
 fi
 
-counterpart_log "setting up our start timestamp and log file, and any other script variables"
+counterpart_log "Setting up our start timestamp and log file, and any other script variables..."
 startTimestamp=$(/bin/date +%s)
 logPath=$loggingDirectory"Counterpart_"`/bin/date -r $startTimestamp +%y-%m-%d_%H-%M-%S`
 host=$(hostname)
 osVersion=$(sw_vers | awk '/ProductVersion/{print substr($2,1,4)}' | tr -d ".")
 rsyncVersion=$($pathToRsync --version | grep 'version' | sed -E 's/ version ([0-9\.]+).+/\1/')
 
-counterpart_log "check that we are running as root"
+counterpart_log "Checking that we are running as root..."
 if [[ $EUID -ne 0 ]]
 then
 	echo "ERROR - Counterpart must be run as root."
 	exit 1
 fi
 
-counterpart_log "checking that have the right version of rsync installed"
+counterpart_log "Checking that have the right version of rsync installed..."
 if [ ! -x "$pathToRsync" ]; then
 	counterpart_log "rsync does not exist (or is not executable) at $pathToRsync. Follow the instructions at http://jedda.me/counterpart/install to install the required version of rsync before running Counterpart."
 	counterpart_exit 85
@@ -284,47 +287,48 @@ if [ "$rsyncExitCode" -ne "0" ]; then
  counterpart_exit 87
 fi
 
-counterpart_log "setting our default organisation prefix if one has not been supplied"
+counterpart_log "Setting our default organisation prefix if one has not been supplied..."
 if [ "$organisationPrefix" == "" ]; then
 organisationPrefix="me.jedda"
 fi
 
 
-counterpart_log "setting up keychain and set password if requested"
+counterpart_log "Setting up keychain and set password if requested..."
 kcAccount="counterpart"
 kcService="$organisationPrefix.$kcAccount"
 if [ "$1" == "setpass" ]; then
 	 set_password
 fi
 
-counterpart_log "introducing ourselves"
-counterpart_log "Counterpart version $version (`md5 $0 | awk '{ print substr($4,0,6) }'`)."
-counterpart_log "Logging to $logPath."
-counterpart_log "Output files will have the prefix $organisationPrefix.counterpart."
-counterpart_log "Running on $host (`sw_vers | awk '/ProductVersion/{print substr($2,1,6)}'`) with $rsyncVersion at $pathToRsync."
+counterpart_log "Introducing ourselves..."
+counterpart_log "Counterpart version $version (`md5 $0 | awk '{ print substr($4,0,6) }'`)"
+counterpart_log "Logging to output $logPath"
+counterpart_log "Logging to output $logPath.error"
+counterpart_log "Output files will have the prefix $organisationPrefix.counterpart"
+counterpart_log "Running on $host (`sw_vers | awk '/ProductVersion/{print substr($2,1,6)}'`) with $rsyncVersion at $pathToRsync"
 
-counterpart_log "check that source is defined"
+counterpart_log "Checking that source is defined..."
 if [ "$src" == "" ]; then
 	counterpart_log "Source not defined. Cannot continue with the clone process."
 	counterpart_exit 2
 fi
 
-counterpart_log "check that destination is defined"
+counterpart_log "Checking that destination is defined..."
 if [ "$dst" == "" ]; then
 	counterpart_log "Destination not defined. Cannot continue with the clone process."
 	counterpart_exit 2
 fi
 
-counterpart_log "Initialising clone from $src to $dst."
+counterpart_log "Initialising clone from $src to $dst..."
 
-counterpart_log "check that the source is readable"
+counterpart_log "Checking that the source is readable..."
 if [ ! -r "$src" ]; then
 	counterpart_log "Source ($src) is not readable. Cannot continue with the clone process."
 	counterpart_error "source ($src) not readable"
     counterpart_exit 65
 fi
 
-counterpart_log "check that the destination is writable"
+counterpart_log "Check that the destination is writable..."
 if [ ! -w "$dst" ]; then
 	counterpart_log "Destination ($dst) is not writable. Cannot continue with the clone process."
     counterpart_exit 66
@@ -333,7 +337,7 @@ fi
 counterpart_log "Ensuring that the destination is not ignoring ownership..."
 /usr/sbin/vsdbutil -a "${dst}"
 
-counterpart_log "building our exclusions string"
+counterpart_log "Building our exclusions string..."
 for exc in "${exclusions[@]}"
 do
   excludeString="$excludeString--exclude=$exc "
@@ -349,14 +353,14 @@ if [ "$excludeFrom" != "" ]; then
 	fi
 fi
 
-counterpart_log "checking to see if this is a test run"
+counterpart_log "Checking to see if this is a test run..."
 if [ "$testRun" == "true" ]; then
 	counterpart_log "Test option specified. Performing a test run - will log all output below:"
 	$pathToRsync -n ${params} "$src" "$dst" 2>&1 | tee -a $logPath
 	counterpart_exit 70
 fi
 
-counterpart_log "checking to see if we need to execute an os x server backup"
+counterpart_log "Checking to see if we need to execute an os x server backup..."
 if [ "$backup2" == "true" ]; then
 	backup=`get_password`
 fi
@@ -389,7 +393,7 @@ if [ "$backup" != "" ]; then
 	esac
 fi
 
-counterpart_log "checking to see if we need to execute a pre-clone script"
+counterpart_log "Checking to see if we need to execute a pre-clone script..."
 if [ "$pre" != "" ]; then
 	if [ ! -x "$pre" ]; then
 		counterpart_log "The pre-clone script at $pre does not exist or could not be executed."
@@ -403,8 +407,9 @@ fi
 
 # time to spin up rsync
 counterpart_log "Running rsync clone now..."
-results=$($pathToRsync ${params} "$src" "$dst" 2>&1)
+$pathToRsync ${params} "$src" "$dst" 1>> $logPath 2>> $logPath.error
 rsyncExitCode=$?
+cat $logPath.error
 
 # handle the rsync exit code
 case "$rsyncExitCode" in
