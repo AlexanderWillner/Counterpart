@@ -40,7 +40,7 @@ echo "Installing (as root)..."
 sudo make install
 
 echo "Cleanup..."
-rm -r "${rsyncPrefix}${rsyncVersion}"
 rm "${rsyncPrefix}patches-${rsyncVersion}${rsyncSuffix}"
 rm "${rsyncPrefix}${rsyncVersion}${rsyncSuffix}"
+rm -r "${rsyncPrefix}${rsyncVersion}"
 ###############################################################################
