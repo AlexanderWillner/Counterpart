@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+readonly CLI="./counterpart"
+
+testSimpleRun() {
+  command=""
+  expected="Usage:"
+  code="0"
+  runSimpleTest "$command" "$expected" "$code"
+}
+
+testNonRoot() {
+  command=". ."
+  expected="as root"
+  code="1"
+  runSimpleTest "$command" "$expected" "$code"
+}
+
+runSimpleTest() {
+  command="$1"
+  expected="$2"
+  codeExpected="$3"
+  output=$(eval "$CLI" "$command")
+  codeResult=$?
+  (echo "$output" | grep "$expected" >/dev/null 2>&1)
+  result=$?
+  assertTrue "Command '$CLI $command' should contain '$expected' in '$output'" $result
+  assertEquals "Command '$CLI $command' should exit with '$codeExpected' instead of '$codeResult'" "$codeExpected" "$codeResult"
+}
