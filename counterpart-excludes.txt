@@ -33,3 +33,4 @@ Saved\ Application\ State
 /Backups.backupdb
 /.MobileBackups
 /stuff
+Library/Logs
