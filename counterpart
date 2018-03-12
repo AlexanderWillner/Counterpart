@@ -8,12 +8,14 @@
 #	Features extensive error reporting, automatic logging and stats generation.
 
 #	v1.3.1 - xx March 2018
-#	Separate logfile for errors and warnings
+#	Separate logfiles for errors and warnings
+#       Spotlight disabled on target
+#       More folders ignored in backup
 #	General cleanup
 #
 #	v1.3 - 28 February 2018
 #	Enhanced test for correct rsync version (and added script to install the correct one)
-#	Ensure that ownership is not ignored (otherwise the backup would not be bootable)
+#	Ensured that ownership is not ignored (otherwise the backup would not be bootable)
 #	Merged support for keychain
 #	More verbose output and general cleanup
 #
@@ -55,8 +57,7 @@
 # - Evaluate "--sparse" vs "--inplace"
 # - Add example how to start this script as soon as a new USB drive is attached
 # - Add trap to disable/enable timemachine
-# - Move/update exclusions
-# - Evaluate this influence of APFS (e.g. bootable copy is APFs)
+# - Evaluate the influence of APFS (e.g. bootable copy is APFs)
 # - Add option to eject disk after backup (see https://github.com/jedda/Counterpart/issues/14)
 
 # Robust shell code ###########################################################
@@ -74,7 +75,7 @@ readonly serverBackupPath="/var/backups/counterpart" # this is the path that ser
 readonly version="1.3.1"
 readonly params="-D --inplace --crtimes --acls --archive --delete --delete-excluded --hard-links --hfs-compression --one-file-system --protect-decmpfs --verbose"
 readonly startTimestamp=$(/bin/date +%s)
-readonly logPath=$loggingDirectory"Counterpart_"$(/bin/date -r "$startTimestamp" +%y-%m-%d_%H-%M-%S)
+readonly logPath=$loggingDirectory"Counterpart_"$(/bin/date -r "$startTimestamp" +%y-%m-%d_%H-%M-%S)".log"
 readonly host=$(hostname)
 readonly osVersion=$(sw_vers | awk '/ProductVersion/{print substr($2,1,4)}' | tr -d ".")
 readonly rsyncVersion=$($pathToRsync --version | grep 'version')
@@ -324,8 +325,6 @@ fi
 
 counterpart_log "Introducing ourselves..."
 counterpart_log "Counterpart version $version ($(md5 "$0" | awk '{ print substr($4,0,6) }'))"
-counterpart_log "Logging to output $logPath"
-counterpart_log "Logging to error $logPath.error"
 counterpart_log "Output files will have the prefix $organisationPrefix.counterpart"
 counterpart_log "Running on $host ($(sw_vers | awk '/ProductVersion/{print substr($2,1,6)}')) with $rsyncVersion at $pathToRsync"
 
@@ -428,10 +427,15 @@ if [ ! -z "${pre:-}" ]; then
 	counterpart_log "Pre-clone command results: $(echo "$preScriptResults" | tr '\n' ' ') (exit code $preScriptExitCode)"
 fi
 
+counterpart_log "Disabling spotlight on clone in a few seconds..."
+(sleep 10; touch "${dst}/.metadata_never_index "; counterpart_log "Disabled spotlight on clone.") &
+
 # time to spin up rsync
 counterpart_log "Running rsync clone now..."
+counterpart_log "Logging to output $logPath"
+counterpart_log "Logging to error $logPath.error.log"
 # shellcheck disable=SC2086
-$pathToRsync ${params} ${excludeString} "$src" "$dst" 1>> "$logPath" 2>> "$logPath.error"
+$pathToRsync ${params} ${excludeString} "$src" "$dst" 1>> "$logPath" 2>> "$logPath.error.log"
 rsyncExitCode=$?
 cat "$logPath.error"
 

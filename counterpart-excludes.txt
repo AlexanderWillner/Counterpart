@@ -10,6 +10,7 @@
 Saved\ Application\ State
 .DocumentRevisions-V100
 .Spotlight-V100
+.Spotlight-*/
 .fseventsd
 /.fseventsd
 /.hotfiles.btree
@@ -18,19 +19,31 @@ Saved\ Application\ State
 /System/Library/Caches/com.apple.corestorage
 /System/Library/Caches/com.apple.kext.caches
 /.com.apple.NetBootX
-/Volumes
-/dev
-/automount
-/Network
-/.vol
+/Volumes/*
+/afs/*
+/dev/*
+/automount/*
+/Network/*
+/.vol/*
 /net
-/private/var/folders
-/private/var/vm
-/private/tmp
-/cores
+/.quota.user
+/.quota.group
+/private/var/folders/zz/*
+/private/var/run/*
+/private/var/spool/postfix/*
+/private/var/vm/*
+/private/tmp/*
+/Previous Systems.localized
+/tmp/*
+/cores/*
 .Trash
 .Trashes
 /Backups.backupdb
 /.MobileBackups
+/.MobileBackups.trash
+Library/Mobile Documents.*
+.webtmp
 /stuff
 Library/Logs
+Library/Caches
+/private/var/log
