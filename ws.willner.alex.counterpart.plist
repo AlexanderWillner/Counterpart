@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC -//Apple Computer//DTD PLIST 1.0//EN http://www.apple.com/DTDs/PropertyList-1.0.dtd >
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>ws.willner.alex.counterpart.plist</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/sudo</string>
+        <string>/Users/awi/bin/backupCounterpart</string>
+    </array>
+    <key>StartOnMount</key>
+    <true/>
+</dict>
+</plist>
+<!-- make sure to add '%admin ALL=(ALL) NOPASSWD: /path/to/script' via 'sudo visudo' -->
+<!-- copy this to $HOME/Library/LaunchAgents-->
+<!-- load this script via 'launchctl load ~/Library/LaunchAgents/ws.willner.alex.counterpart.plist' -->
