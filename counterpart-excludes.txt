@@ -15,6 +15,7 @@ Saved\ Application\ State
 /.fseventsd
 /.hotfiles.btree
 /private/var/db/dyld/dyld_*
+/private/var/db/com.apple.backupd.backupVerification/
 /System/Library/Caches/com.apple.bootstamps
 /System/Library/Caches/com.apple.corestorage
 /System/Library/Caches/com.apple.kext.caches
@@ -25,7 +26,7 @@ Saved\ Application\ State
 /automount/*
 /Network/*
 /.vol/*
-/net
+/net/*
 /.quota.user
 /.quota.group
 /private/var/folders/zz/*
@@ -36,14 +37,15 @@ Saved\ Application\ State
 /Previous Systems.localized
 /tmp/*
 /cores/*
-.Trash
-.Trashes
+.Trash/*
+.Trashes/*
 /Backups.backupdb
 /.MobileBackups
 /.MobileBackups.trash
 Library/Mobile Documents.*
 .webtmp
 /stuff
-Library/Logs
-Library/Caches
-/private/var/log
+Library/Logs/*
+Library/Caches/*
+/private/var/log/*
+com.apple.cloudphotosd/*
