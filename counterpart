@@ -7,10 +7,14 @@
 #	A wrapper script for rsync 3.0+ that is capable of producing a bootable clone of a live Mac OS X system.
 #	Features extensive error reporting, automatic logging and stats generation.
 
-#	v1.3.1 - xx March 2018
+#	v1.4 - xx May 2018
+#	Added lock file
+#	Added LaunchDaemon
+#	Added macOS notifications
 #	Separate logfiles for errors and warnings
-#       Spotlight disabled on target
-#       More folders ignored in backup
+#	Spotlight disabled on target
+#	More folders ignored in backup
+#	Check that target is mounted
 #	General cleanup
 #
 #	v1.3 - 28 February 2018
@@ -55,10 +59,9 @@
 # - Evaluate the use of ditto
 # - Evaluate the need for the EFI and Recovery partitions
 # - Evaluate "--sparse" vs "--inplace"
-# - Add example how to start this script as soon as a new USB drive is attached
-# - Add trap to disable/enable timemachine
 # - Evaluate the influence of APFS (e.g. bootable copy is APFs)
 # - Add option to eject disk after backup (see https://github.com/jedda/Counterpart/issues/14)
+# - Analyze the issue 'Missing abbreviated xattr value, com.apple.decmpfs' that some files show
 
 # Robust shell code ###########################################################
 set -o errexit
@@ -68,20 +71,27 @@ set -o pipefail
 ###############################################################################
 
 # variables ###################################################################
-readonly exclusions=(".Trash" ".Trashes" ".Spotlight-*/" ".DocumentRevisions-*/" "/.fseventsd" "/.hotfiles.btree" "/private/var/db/dyld/dyld_*" "/System/Library/Caches/com.apple.bootstamps" "/System/Library/Caches/com.apple.corestorage" "/System/Library/Caches/com.apple.kext.caches" "/Library/Caches" "/Volumes" "/dev" "/automount" "/Network" "/.vol" "/net" "/private/var/folders" "/private/var/vm" "/private/tmp" "/cores")
+readonly exclusions=(".Trash" ".Trashes" ".Spotlight-*/" ".DocumentRevisions-*/" "/.fseventsd" "/.hotfiles.btree" "/private/var/db/dyld/dyld_*" "/System/Library/Caches/com.apple.bootstamps" "/System/Library/Caches/com.apple.corestorage" "/System/Library/Caches/com.apple.kext.caches" "/Library/Caches" "/Volumes/*" "/dev/*" "/automount" "/Network/*" "/.vol/*" "/net/*" "/private/var/folders/*" "/private/var/vm/*" "/private/tmp/*" "/cores/*")
 readonly loggingDirectory="/Library/Logs/Counterpart/"
 readonly pathToRsync="$(find /opt/local/bin /usr/local/bin "$(which rsync)" -name rsync 2>/dev/null | head -n 1)"
 readonly serverBackupPath="/var/backups/counterpart" # this is the path that server data will be backed up to if the -b option is specified
 readonly version="1.3.1"
-readonly params="-D --inplace --crtimes --acls --archive --delete --delete-excluded --hard-links --hfs-compression --one-file-system --protect-decmpfs --verbose"
+readonly params="-D --inplace --crtimes --acls --archive --delete --delete-excluded --hard-links --hfs-compression --one-file-system --protect-decmpfs -h --stats --progress"
 readonly startTimestamp=$(/bin/date +%s)
 readonly logPath=$loggingDirectory"Counterpart_"$(/bin/date -r "$startTimestamp" +%y-%m-%d_%H-%M-%S)".log"
 readonly host=$(hostname)
 readonly osVersion=$(sw_vers | awk '/ProductVersion/{print substr($2,1,4)}' | tr -d ".")
 readonly rsyncVersion=$($pathToRsync --version | grep 'version')
+readonly lockFile="/tmp/counterpart.lock"
 ###############################################################################
 
 # functions
+function isRunning { shlock -f "${lockFile}"; echo $?; }
+function lockCounterpart { touch "${lockFile}"; }
+function unlockCounterpart { rm -f "${lockFile}"; }
+function finish { unlockCounterpart; osascript -e 'display notification "Drive cloned" with title "Counterpart"'; }
+trap finish EXIT
+
 function counterpart_log {
 	# create our log directory if required
 	if [ ! -d "$loggingDirectory" ]; then
@@ -300,8 +310,9 @@ elif ! echo "${rsyncVersion}" | grep -q -E -o "version 3"; then
 	counterpart_log "Counterpart requires rsync version 3.0.9 or higher. Follow the instructions at http://jedda.me/counterpart/install to install the required version of rsync before running Counterpart."
 	counterpart_exit 86
 fi
+readonly tmpempty=$(mktemp)
 # shellcheck disable=SC2086
-results=$($pathToRsync -n ${params} . . 2>&1)
+results=$($pathToRsync -n ${params} "${tmpempty}" "${tmpempty}" 2>&1)
 rsyncExitCode=$?
 if [ "$rsyncExitCode" -ne "0" ]; then
  counterpart_log "rsync parameter: $params"
@@ -338,6 +349,17 @@ counterpart_log "Checking that destination is defined..."
 if [ -z "$dst" ]; then
 	counterpart_log "Destination not defined. Cannot continue with the clone process."
 	counterpart_exit 2
+fi
+
+counterpart_log "Checking that destination is mounted..."
+if [ -z "$dst" ]; then
+	counterpart_log "Destination not defined. Cannot continue with the clone process."
+	counterpart_exit 2
+fi
+
+if ! mount | grep "on ${dst%/}" > /dev/null; then
+	counterpart_log "Destination '${dst%/}' seems not to be mounted. Cannot continue with the clone process."
+	counterpart_exit 3
 fi
 
 counterpart_log "Initialising clone from $src to $dst..."
@@ -415,6 +437,13 @@ if [ ! -z "${backup:-}" ]; then
 	esac
 fi
 
+counterpart_log "Checking to see if we are locked..."
+if [[ "$(isRunning)" -eq "1" ]]; then
+	trap '' EXIT
+	counterpart_log "Sorry, we're locked."
+	counterpart_exit 98  
+fi
+
 counterpart_log "Checking to see if we need to execute a pre-clone script..."
 if [ ! -z "${pre:-}" ]; then
 	if [ ! -x "$pre" ]; then
@@ -428,15 +457,19 @@ if [ ! -z "${pre:-}" ]; then
 fi
 
 counterpart_log "Disabling spotlight on clone in a few seconds..."
-(sleep 10; touch "${dst}/.metadata_never_index "; counterpart_log "Disabled spotlight on clone.") &
+(sudo mdutil -i off "${dst}" ; sleep 10; touch "${dst}/.metadata_never_index " ; counterpart_log "Disabled spotlight on clone.") &
 
 # time to spin up rsync
 counterpart_log "Running rsync clone now..."
-counterpart_log "Logging to output $logPath"
-counterpart_log "Logging to error $logPath.error.log"
+counterpart_log "Logging some output to $logPath"
+counterpart_log "Logging errors to $logPath.error.log"
+osascript -e 'display notification "Starting to clone drive..." with title "Counterpart"'
+lockCounterpart
 # shellcheck disable=SC2086
-$pathToRsync ${params} ${excludeString} "$src" "$dst" 1>> "$logPath" 2>> "$logPath.error.log"
+$pathToRsync ${params} ${excludeString} "$src" "$dst" 2>> "$logPath.error.log"
+#$pathToRsync ${params} ${excludeString} "$src" "$dst" 1>> "$logPath" 2>> "$logPath.error.log"
 rsyncExitCode=$?
+unlockCounterpart
 cat "$logPath.error"
 
 # handle the rsync exit code
