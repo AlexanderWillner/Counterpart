@@ -62,6 +62,7 @@
 # - Evaluate the influence of APFS (e.g. bootable copy is APFs)
 # - Add option to eject disk after backup (see https://github.com/jedda/Counterpart/issues/14)
 # - Analyze the issue 'Missing abbreviated xattr value, com.apple.decmpfs' that some files show
+# - Apply changes from Shellharden
 
 # Robust shell code ###########################################################
 set -o errexit
@@ -76,7 +77,7 @@ readonly loggingDirectory="/Library/Logs/Counterpart/"
 readonly pathToRsync="$(find /opt/local/bin /usr/local/bin "$(which rsync)" -name rsync 2>/dev/null | head -n 1)"
 readonly serverBackupPath="/var/backups/counterpart" # this is the path that server data will be backed up to if the -b option is specified
 readonly version="1.3.1"
-readonly params="-D --inplace --crtimes --acls --archive --delete --delete-excluded --hard-links --hfs-compression --one-file-system --protect-decmpfs -h --stats --progress"
+readonly params="--archive --hfs-compression --protect-decmpfs --crtimes --fileflags --times --xattrs --executability --acls --inplace --delete --delete-excluded --hard-links --one-file-system -h --stats --progress"
 readonly startTimestamp=$(/bin/date +%s)
 readonly logPath=$loggingDirectory"Counterpart_"$(/bin/date -r "$startTimestamp" +%y-%m-%d_%H-%M-%S)".log"
 readonly host=$(hostname)
@@ -89,7 +90,7 @@ readonly lockFile="/tmp/counterpart.lock"
 function isRunning { shlock -f "${lockFile}"; echo $?; }
 function lockCounterpart { touch "${lockFile}"; }
 function unlockCounterpart { rm -f "${lockFile}"; }
-function finish { unlockCounterpart; osascript -e 'display notification "Drive cloned" with title "Counterpart"'; }
+function finish { unlockCounterpart; osascript -e 'display notification "Script finished" with title "Counterpart"'; }
 trap finish EXIT
 
 function counterpart_log {
@@ -302,7 +303,7 @@ if [[ $EUID -ne 0 ]]; then
 	exit 1
 fi
 
-counterpart_log "Checking that have the right version of rsync installed..."
+counterpart_log "Checking that you have the right version of rsync installed..."
 if [ ! -x "$pathToRsync" ]; then
 	counterpart_log "rsync does not exist (or is not executable) at $pathToRsync. Follow the instructions at http://jedda.me/counterpart/install to install the required version of rsync before running Counterpart."
 	counterpart_exit 85
@@ -470,6 +471,7 @@ $pathToRsync ${params} ${excludeString} "$src" "$dst" 2>> "$logPath.error.log"
 #$pathToRsync ${params} ${excludeString} "$src" "$dst" 1>> "$logPath" 2>> "$logPath.error.log"
 rsyncExitCode=$?
 unlockCounterpart
+osascript -e 'display notification "Drive cloned" with title "Counterpart"'
 cat "$logPath.error"
 
 # handle the rsync exit code
