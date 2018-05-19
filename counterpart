@@ -87,10 +87,11 @@ readonly lockFile="/tmp/counterpart.lock"
 ###############################################################################
 
 # functions
-function isRunning { shlock -f "${lockFile}"; echo $?; }
-function lockCounterpart { touch "${lockFile}"; }
-function unlockCounterpart { rm -f "${lockFile}"; }
-function finish { unlockCounterpart; osascript -e 'display notification "Script finished" with title "Counterpart"'; }
+function isRunning { shlock -f "$lockFile"; echo $?; }
+function lockCounterpart { echo "$1" > "$lockFile"; }
+function unlockCounterpart { rm -f "$lockFile"; }
+function stopCounterpart { if [[ -r "$lockFile" ]]; then kill $(cat "$lockFile"); fi; }
+function finish { unlockCounterpart; }
 trap finish EXIT
 
 function counterpart_log {
@@ -249,7 +250,7 @@ function get_password {
 }
 
 printHelp="false"
-while getopts "s:d:Bb:p:o:e:g:th" optionName; do
+while getopts "s:d:Bb:p:o:e:g:t:kh" optionName; do
 case "$optionName" in
 s) src="$OPTARG";;
 d) dst="$OPTARG";;
@@ -261,6 +262,7 @@ e) excludeFrom="$OPTARG";;
 g) organisationPrefix="$OPTARG";;
 t) testRun="true";;
 h) printHelp="true";;
+k) stopCounterpart; exit;;
 *) echo "Error: wrong option '$optionName'";;
 esac
 done
@@ -465,11 +467,13 @@ counterpart_log "Running rsync clone now..."
 counterpart_log "Logging some output to $logPath"
 counterpart_log "Logging errors to $logPath.error.log"
 osascript -e 'display notification "Starting to clone drive..." with title "Counterpart"'
-lockCounterpart
 # shellcheck disable=SC2086
-$pathToRsync ${params} ${excludeString} "$src" "$dst" 2>> "$logPath.error.log"
-#$pathToRsync ${params} ${excludeString} "$src" "$dst" 1>> "$logPath" 2>> "$logPath.error.log"
-rsyncExitCode=$?
+$pathToRsync ${params} ${excludeString} "$src" "$dst" 2>> "$logPath.error.log" &
+counterpartPID="$!"
+lockCounterpart "$counterpartPID"
+wait "$counterpartPID"
+rsyncExitCode="$?"
+
 unlockCounterpart
 osascript -e 'display notification "Drive cloned" with title "Counterpart"'
 cat "$logPath.error"
