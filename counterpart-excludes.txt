@@ -8,7 +8,7 @@
 .VolumeIcon.icns
 /TheVolumeSettingsFolder
 Saved\ Application\ State
-.DocumentRevisions-V100
+.DocumentRevisions-V100*
 .Spotlight-V100
 .Spotlight-*/
 .fseventsd
