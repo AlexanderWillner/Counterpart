@@ -480,7 +480,7 @@ counterpart_log "Running rsync clone now..."
 counterpart_log "Logging some output to $logPath"
 counterpart_log "Logging errors to $logPath.error.log"
 osascript -e 'display notification "Starting to clone drive..." with title "Counterpart"'
-"$pathToRsync" "${params[@]}" "$excludeString" "$src" "$dst" 2>>"$logPath.error.log" &
+"$pathToRsync" "${params[@]}" $excludeString "$src" "$dst" 2>>"$logPath.error.log" &
 counterpartPID="$!"
 lockCounterpart "$counterpartPID"
 wait "$counterpartPID"
